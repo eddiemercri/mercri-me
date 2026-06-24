@@ -43,7 +43,10 @@ export default function Home() {
       });
       const data = await res.json();
       if (res.ok && data.user) {
-        localStorage.setItem('user', JSON.stringify(data.user));
+        const token = btoa(JSON.stringify({ id: data.user.id, email: data.user.email }));
+        localStorage.setItem('auth_token', token);
+        localStorage.setItem('user_id', data.user.id);
+        localStorage.setItem('user_role', data.user.role || 'admin');
         window.location.reload();
       } else {
         alert(data.error || 'Login failed');
@@ -65,7 +68,10 @@ export default function Home() {
       });
       const data = await res.json();
       if (res.ok && data.user) {
-        localStorage.setItem('user', JSON.stringify(data.user));
+        const token = btoa(JSON.stringify({ id: data.user.id, email: data.user.email }));
+        localStorage.setItem('auth_token', token);
+        localStorage.setItem('user_id', data.user.id);
+        localStorage.setItem('user_role', 'admin');
         window.location.reload();
       } else {
         alert(data.error || 'Signup failed');
@@ -74,6 +80,13 @@ export default function Home() {
       alert('Signup error');
     }
     setAuthLoading(false);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('auth_token');
+    localStorage.removeItem('user_id');
+    localStorage.removeItem('user_role');
+    window.location.reload();
   };
 
   return (
@@ -86,15 +99,7 @@ export default function Home() {
             {user?.id ? (
               <>
                 <Link href="/admin" className="text-sm hover:underline">Admin</Link>
-                <button
-                  onClick={() => {
-                    localStorage.removeItem('user');
-                    window.location.reload();
-                  }}
-                  className="text-sm hover:underline"
-                >
-                  Logout
-                </button>
+                <button onClick={handleLogout} className="text-sm hover:underline">Logout</button>
               </>
             ) : (
               <>

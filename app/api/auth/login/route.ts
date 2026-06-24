@@ -20,7 +20,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
     }
 
-    return NextResponse.json({ user: { id: data.id, email: data.email } });
+    return NextResponse.json({ user: { id: data.id, email: data.email, role: data.role || 'admin' } });
   } catch (error) {
     return NextResponse.json({ error: 'Login failed' }, { status: 500 });
   }
