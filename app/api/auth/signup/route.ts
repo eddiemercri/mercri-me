@@ -19,9 +19,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'User already exists' }, { status: 400 });
     }
 
+    const username = email.split('@')[0];
+
     const { data, error } = await supabase
       .from('users')
-      .insert([{ email, password }])
+      .insert([{ email, password_hash: password, username }])
       .select()
       .single();
 

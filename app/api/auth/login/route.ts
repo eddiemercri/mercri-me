@@ -13,7 +13,7 @@ export async function POST(request: Request) {
       .from('users')
       .select('*')
       .eq('email', email)
-      .eq('password', password)
+      .eq('password_hash', password)
       .single();
 
     if (error || !data) {
