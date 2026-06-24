@@ -1,4 +1,5 @@
 'use client';
+export const dynamic = 'force-dynamic';
 import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { getCurrentUser } from '@/lib/auth';
@@ -53,13 +54,12 @@ export default function CreatePostPage() {
   return (
     <div className="min-h-screen bg-white">
       <header className="border-b border-gray-200">
-        <div className="max-w-2xl mx-auto px-4 py-8">
-          <Link href="/admin"><h1 className="text-3xl font-bold text-black hover:text-gray-600">← Back</h1></Link>
-          <h2 className="text-2xl font-bold text-black mt-4">Create New Post</h2>
+        <div className="max-w-4xl mx-auto px-4 py-8">
+          <h1 className="text-4xl font-bold">Create Post</h1>
         </div>
       </header>
 
-      <main className="max-w-2xl mx-auto px-4 py-12">
+      <main className="max-w-4xl mx-auto px-4 py-8">
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
             <label className="block text-sm font-medium mb-2">Title *</label>
@@ -67,8 +67,7 @@ export default function CreatePostPage() {
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-black"
-              placeholder="Post title"
+              className="w-full border border-gray-300 rounded px-3 py-2"
               required
             />
           </div>
@@ -79,8 +78,7 @@ export default function CreatePostPage() {
               type="text"
               value={slug}
               onChange={(e) => setSlug(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-black"
-              placeholder="post-slug"
+              className="w-full border border-gray-300 rounded px-3 py-2"
               required
             />
           </div>
@@ -90,9 +88,8 @@ export default function CreatePostPage() {
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-black"
-              placeholder="Brief description"
-              rows={2}
+              className="w-full border border-gray-300 rounded px-3 py-2"
+              rows={3}
             />
           </div>
 
@@ -101,8 +98,7 @@ export default function CreatePostPage() {
             <textarea
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-black"
-              placeholder="Post content"
+              className="w-full border border-gray-300 rounded px-3 py-2"
               rows={8}
             />
           </div>
@@ -112,34 +108,39 @@ export default function CreatePostPage() {
             <select
               value={mediaType}
               onChange={(e) => setMediaType(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-black"
+              className="w-full border border-gray-300 rounded px-3 py-2"
             >
               <option value="text">Text</option>
-              <option value="image">Image</option>
               <option value="video">Video</option>
               <option value="audio">Audio</option>
+              <option value="image">Image</option>
               <option value="mixed">Mixed</option>
             </select>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center">
             <input
               type="checkbox"
               id="publish"
               checked={publish}
               onChange={(e) => setPublish(e.target.checked)}
-              className="w-4 h-4"
+              className="mr-2"
             />
-            <label htmlFor="publish" className="text-sm font-medium">Publish immediately</label>
+            <label htmlFor="publish">Publish now</label>
           </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-2 bg-black text-white rounded font-medium hover:bg-gray-800 disabled:opacity-50"
-          >
-            {loading ? 'Creating...' : 'Create Post'}
-          </button>
+          <div className="flex gap-4">
+            <button
+              type="submit"
+              disabled={loading}
+              className="bg-black text-white px-6 py-2 rounded disabled:opacity-50"
+            >
+              {loading ? 'Creating...' : 'Create Post'}
+            </button>
+            <Link href="/admin" className="text-blue-600 hover:underline py-2">
+              Cancel
+            </Link>
+          </div>
         </form>
       </main>
     </div>
