@@ -101,10 +101,11 @@ export default function PostPage({ params }: { params: Promise<{ slug: string }>
             {demosOpen && (
               <div className="mt-6 space-y-4">
                 {demos.map((demo, idx) => (
-                  <a key={idx} href={demo.url} target="_blank" rel="noopener noreferrer" className="block p-4 border border-gray-200 rounded hover:border-blue-600 hover:bg-blue-50 transition">
+                  <div key={idx} className="p-4 border border-gray-200 rounded">
                     <p className="font-medium text-gray-900">{demo.name}</p>
-                    <p className="text-sm text-gray-600">{demo.date}</p>
-                  </a>
+                    {demo.date && <p className="text-sm text-gray-600 mb-2">{demo.date}</p>}
+                    <audio controls src={demo.url} className="w-full mt-2" />
+                  </div>
                 ))}
               </div>
             )}

@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { getCurrentUser } from '@/lib/auth';
+import { supabase } from '@/lib/supabase';
 import Link from 'next/link';
 
 interface Demo {
@@ -13,11 +14,11 @@ interface Demo {
 export default function CreatePostPage() {
   const router = useRouter();
   const userId = getCurrentUser()?.id;
-  
+
   const [title, setTitle] = useState('');
   const [slug, setSlug] = useState('');
   const [description, setDescription] = useState('');
-  const [mediaType, setMediaType] = useState('text');
+  const [mediaType, setMediaType] = useState('audio');
   const [coverArtUrl, setCoverArtUrl] = useState('');
   const [spotifyUrl, setSpotifyUrl] = useState('');
   const [appleMusicUrl, setAppleMusicUrl] = useState('');
@@ -26,6 +27,49 @@ export default function CreatePostPage() {
   const [demos, setDemos] = useState<Demo[]>([]);
   const [newDemo, setNewDemo] = useState({ name: '', url: '', date: '' });
   const [loading, setLoading] = useState(false);
+  const [uploadingCover, setUploadingCover] = useState(false);
+  const [uploadingDemo, setUploadingDemo] = useState(false);
+
+  const uploadFile = async (file: File, folder: string): Promise<string> => {
+    const fileExt = file.name.split('.').pop();
+    const fileName = Date.now() + '-' + Math.random().toString(36).substring(7) + '.' + fileExt;
+    const filePath = folder + '/' + fileName;
+
+    const { error } = await supabase.storage
+      .from('media')
+      .upload(filePath, file);
+
+    if (error) throw error;
+
+    const { data } = supabase.storage.from('media').getPublicUrl(filePath);
+    return data.publicUrl;
+  };
+
+  const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingCover(true);
+    try {
+      const url = await uploadFile(file, 'covers');
+      setCoverArtUrl(url);
+    } catch (err) {
+      alert('Failed to upload cover: ' + (err instanceof Error ? err.message : ''));
+    }
+    setUploadingCover(false);
+  };
+
+  const handleDemoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingDemo(true);
+    try {
+      const url = await uploadFile(file, 'demos');
+      setNewDemo({ ...newDemo, url });
+    } catch (err) {
+      alert('Failed to upload demo: ' + (err instanceof Error ? err.message : ''));
+    }
+    setUploadingDemo(false);
+  };
 
   const handleAddDemo = () => {
     if (newDemo.name && newDemo.url) {
@@ -71,7 +115,7 @@ export default function CreatePostPage() {
         alert('Failed to create post');
       }
     } catch (error) {
-      alert('Error: ' + (error instanceof Error ? error.message : 'Failed to create post'));
+      alert('Error: ' + (error instanceof Error ? error.message : 'Failed'));
     }
     setLoading(false);
   };
@@ -86,7 +130,6 @@ export default function CreatePostPage() {
 
       <main className="max-w-4xl mx-auto px-4 py-8">
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Basic Info */}
           <div>
             <label className="block text-sm font-medium mb-2">Title *</label>
             <input
@@ -119,37 +162,26 @@ export default function CreatePostPage() {
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium mb-2">Media Type</label>
-            <select
-              value={mediaType}
-              onChange={(e) => setMediaType(e.target.value)}
-              className="w-full border border-gray-300 rounded px-3 py-2"
-            >
-              <option value="text">Text</option>
-              <option value="audio">Audio</option>
-              <option value="video">Video</option>
-              <option value="image">Image</option>
-              <option value="mixed">Mixed</option>
-            </select>
+          <div className="border-t border-gray-200 pt-6">
+            <h2 className="text-xl font-semibold mb-4">Cover Art</h2>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleCoverUpload}
+              className="block"
+            />
+            {uploadingCover && <p className="text-sm text-gray-600 mt-2">Uploading...</p>}
+            {coverArtUrl && (
+              <div className="mt-4">
+                <img src={coverArtUrl} alt="Cover" className="w-48 h-48 object-cover rounded" />
+              </div>
+            )}
           </div>
 
-          {/* Music Fields */}
           <div className="border-t border-gray-200 pt-6">
-            <h2 className="text-xl font-semibold mb-4">Music Details</h2>
+            <h2 className="text-xl font-semibold mb-4">Music Links</h2>
 
-            <div>
-              <label className="block text-sm font-medium mb-2">Cover Art URL</label>
-              <input
-                type="text"
-                value={coverArtUrl}
-                onChange={(e) => setCoverArtUrl(e.target.value)}
-                placeholder="https://example.com/cover.jpg"
-                className="w-full border border-gray-300 rounded px-3 py-2"
-              />
-            </div>
-
-            <div>
+            <div className="mb-4">
               <label className="block text-sm font-medium mb-2">Spotify URL</label>
               <input
                 type="text"
@@ -160,7 +192,7 @@ export default function CreatePostPage() {
               />
             </div>
 
-            <div>
+            <div className="mb-4">
               <label className="block text-sm font-medium mb-2">Apple Music URL</label>
               <input
                 type="text"
@@ -171,7 +203,7 @@ export default function CreatePostPage() {
               />
             </div>
 
-            <div>
+            <div className="mb-4">
               <label className="block text-sm font-medium mb-2">Credits</label>
               <textarea
                 value={credits}
@@ -194,26 +226,27 @@ export default function CreatePostPage() {
             </div>
           </div>
 
-          {/* Demos */}
           <div className="border-t border-gray-200 pt-6">
             <h2 className="text-xl font-semibold mb-4">Earlier Demos</h2>
 
             {demos.length > 0 && (
               <div className="mb-6 space-y-3">
                 {demos.map((demo, idx) => (
-                  <div key={idx} className="p-4 border border-gray-200 rounded flex justify-between items-start">
-                    <div>
-                      <p className="font-medium">{demo.name}</p>
-                      <p className="text-sm text-gray-600">{demo.date}</p>
-                      <p className="text-sm text-blue-600 truncate">{demo.url}</p>
+                  <div key={idx} className="p-4 border border-gray-200 rounded">
+                    <div className="flex justify-between items-start mb-2">
+                      <div>
+                        <p className="font-medium">{demo.name}</p>
+                        <p className="text-sm text-gray-600">{demo.date}</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveDemo(idx)}
+                        className="text-red-600 hover:text-red-800 text-sm"
+                      >
+                        Remove
+                      </button>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveDemo(idx)}
-                      className="text-red-600 hover:text-red-800 text-sm"
-                    >
-                      Remove
-                    </button>
+                    <audio controls src={demo.url} className="w-full mt-2" />
                   </div>
                 ))}
               </div>
@@ -232,14 +265,15 @@ export default function CreatePostPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2">Demo Link</label>
+                <label className="block text-sm font-medium mb-2">Demo Audio File (MP3, WAV, etc.)</label>
                 <input
-                  type="text"
-                  value={newDemo.url}
-                  onChange={(e) => setNewDemo({ ...newDemo, url: e.target.value })}
-                  placeholder="https://soundcloud.com/... or https://open.spotify.com/..."
-                  className="w-full border border-gray-300 rounded px-3 py-2"
+                  type="file"
+                  accept="audio/*"
+                  onChange={handleDemoUpload}
+                  className="block"
                 />
+                {uploadingDemo && <p className="text-sm text-gray-600 mt-2">Uploading...</p>}
+                {newDemo.url && <p className="text-sm text-green-600 mt-2">File uploaded!</p>}
               </div>
 
               <div>
@@ -256,14 +290,14 @@ export default function CreatePostPage() {
               <button
                 type="button"
                 onClick={handleAddDemo}
-                className="w-full bg-gray-800 text-white px-4 py-2 rounded hover:bg-gray-900"
+                disabled={!newDemo.name || !newDemo.url}
+                className="w-full bg-gray-800 text-white px-4 py-2 rounded hover:bg-gray-900 disabled:opacity-50"
               >
                 Add Demo
               </button>
             </div>
           </div>
 
-          {/* Submit */}
           <div className="flex gap-4 pt-6 border-t border-gray-200">
             <button
               type="submit"
