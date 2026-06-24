@@ -36,12 +36,12 @@ export default function CreatePostPage() {
     const filePath = folder + '/' + fileName;
 
     const { error } = await supabase.storage
-      .from('media')
+      .from('Media')
       .upload(filePath, file);
 
     if (error) throw error;
 
-    const { data } = supabase.storage.from('media').getPublicUrl(filePath);
+    const { data } = supabase.storage.from('Media').getPublicUrl(filePath);
     return data.publicUrl;
   };
 
