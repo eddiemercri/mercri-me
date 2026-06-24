@@ -27,44 +27,61 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-white font-light">
+    <div className="min-h-screen bg-white">
       <header className="border-b border-gray-200">
         <div className="max-w-2xl mx-auto px-4 py-12 text-center">
-          <h1 className="text-5xl font-light text-black">mercri.me</h1>
-          <p className="text-gray-600 text-sm mt-3 font-light">thoughts & explorations</p>
+          <h1 className="text-5xl font-bold text-black">mercri.me</h1>
+          <p className="text-gray-600 text-sm mt-3">thoughts & explorations</p>
           <nav className="flex gap-6 justify-center mt-6">
             {user?.id ? (
               <>
-                <span className="text-sm text-gray-600 font-light">Welcome</span>
-                {user.role === 'admin' && <Link href="/admin" className="text-sm font-light hover:underline">Admin</Link>}
-                <button onClick={() => { localStorage.clear(); window.location.reload(); }} className="text-sm font-light hover:underline">Logout</button>
+                <Link href="/admin" className="text-sm hover:underline">
+                  Admin
+                </Link>
+                <button
+                  onClick={() => {
+                    localStorage.removeItem('user');
+                    window.location.reload();
+                  }}
+                  className="text-sm hover:underline"
+                >
+                  Logout
+                </button>
               </>
             ) : (
               <>
-                <Link href="/login" className="text-sm font-light hover:underline">Login</Link>
-                <Link href="/signup" className="text-sm font-light hover:underline">Signup</Link>
+                <Link href="?login=true" className="text-sm hover:underline">
+                  Login
+                </Link>
+                <Link href="?signup=true" className="text-sm hover:underline">
+                  Signup
+                </Link>
               </>
             )}
           </nav>
         </div>
       </header>
+
       <main className="max-w-2xl mx-auto px-4 py-12">
         {loading ? (
-          <div className="text-center text-gray-600 font-light">Loading posts...</div>
+          <p>Loading posts...</p>
         ) : posts.length === 0 ? (
-          <div className="text-center text-gray-600 font-light">No posts yet. Create one in the admin panel!</div>
+          <p className="text-gray-600">No posts yet.</p>
         ) : (
-          <div className="space-y-12">
-            {posts.map((post) => (
-              <article key={post.id} className="text-center border-b border-gray-200 pb-12">
+          <div className="space-y-8">
+            {posts.map(post => (
+              <article key={post.id} className="pb-8 border-b border-gray-200 last:border-0">
                 <Link href={`/post/${post.slug}`}>
-                  <h2 className="text-3xl font-light text-black hover:text-gray-600">{post.title}</h2>
+                  <h2 className="text-2xl font-semibold hover:text-blue-600 transition cursor-pointer">
+                    {post.title}
+                  </h2>
                 </Link>
-                <div className="flex gap-4 text-sm text-gray-600 mt-3 justify-center font-light">
+                <p className="text-gray-600 mt-2">{post.description}</p>
+                <div className="flex gap-4 text-sm text-gray-500 mt-4">
+                  <span>{post.media_type}</span>
                   <span>{new Date(post.published_at).toLocaleDateString()}</span>
                   <span>{post.views} views</span>
                 </div>
-                {post.description && <p className="text-gray-700 mt-4 font-light">{post.description}</p>}
               </article>
             ))}
           </div>
