@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, use } from 'react';
 import Link from 'next/link';
 
 interface Demo {
@@ -23,18 +23,19 @@ interface Post {
   views: number;
 }
 
-export default function PostPage({ params }: { params: { slug: string } }) {
+export default function PostPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = use(params);
   const [post, setPost] = useState<Post | null>(null);
   const [loading, setLoading] = useState(true);
   const [demosOpen, setDemosOpen] = useState(false);
 
   useEffect(() => {
-    fetch('/api/posts/' + params.slug)
+    fetch('/api/posts/' + slug)
       .then(r => r.json())
       .then(data => setPost(data))
       .catch(console.error)
       .finally(() => setLoading(false));
-  }, [params.slug]);
+  }, [slug]);
 
   if (loading) return <p className="p-8">Loading...</p>;
   if (!post || !post.title) return <p className="p-8">Post not found</p>;
