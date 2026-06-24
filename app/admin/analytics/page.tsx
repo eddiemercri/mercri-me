@@ -17,7 +17,6 @@ export default function Analytics() {
   });
 
   useEffect(() => {
-    // Fetch analytics data
     fetch('/api/analytics')
       .then(r => r.json())
       .then(data => setAnalytics(data))
