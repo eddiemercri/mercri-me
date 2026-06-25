@@ -1,7 +1,8 @@
 'use client';
 import { useEffect, useState } from 'react';
-import Link from 'next/link';
 import { getCurrentUser } from '@/lib/auth';
+
+interface Demo { name: string; url: string; date: string; }
 
 interface Post {
   id: string;
@@ -11,6 +12,12 @@ interface Post {
   media_type: string;
   published_at: string;
   views: number;
+  cover_art_url?: string;
+  spotify_url?: string;
+  apple_music_url?: string;
+  credits?: string;
+  process_description?: string;
+  demos?: Demo[];
 }
 
 export default function Home() {
@@ -98,7 +105,7 @@ export default function Home() {
           <nav className="flex gap-6 justify-center mt-6">
             {user?.id ? (
               <>
-                <Link href="/admin" className="text-sm hover:underline">Admin</Link>
+                <a href="/admin" className="text-sm hover:underline">Admin</a>
                 <button onClick={handleLogout} className="text-sm hover:underline">Logout</button>
               </>
             ) : (
@@ -113,26 +120,77 @@ export default function Home() {
 
       <main className="max-w-2xl mx-auto px-4 py-12">
         {loading ? (
-          <p>Loading posts...</p>
+          <p>Loading...</p>
         ) : posts.length === 0 ? (
           <p className="text-gray-600">No posts yet.</p>
         ) : (
-          <div className="space-y-8">
-            {posts.map(post => (
-              <article key={post.id} className="pb-8 border-b border-gray-200 last:border-0">
-                <Link href={'/post/' + post.slug}>
-                  <h2 className="text-2xl font-semibold hover:text-blue-600 transition cursor-pointer">
-                    {post.title}
-                  </h2>
-                </Link>
-                <p className="text-gray-600 mt-2">{post.description}</p>
-                <div className="flex gap-4 text-sm text-gray-500 mt-4">
-                  <span>{post.media_type}</span>
-                  <span>{new Date(post.published_at).toLocaleDateString()}</span>
-                  <span>{post.views} views</span>
-                </div>
-              </article>
-            ))}
+          <div className="space-y-24">
+            {posts.map(post => {
+              const demos = post.demos || [];
+              return (
+                <article key={post.id} className="pb-24 border-b border-gray-200 last:border-0">
+                  <h2 className="text-5xl font-light mb-2">{post.title}</h2>
+                  {post.description && <p className="text-gray-600 mb-8">{post.description}</p>}
+
+                  {post.cover_art_url && (
+                    <img src={post.cover_art_url} alt={post.title} className="w-full h-auto mb-6 rounded" />
+                  )}
+
+                  {post.spotify_url && (
+                    <iframe
+                      src={'https://open.spotify.com/embed/track/' + post.spotify_url.split('/').pop() + '?utm_source=generator'}
+                      width="100%"
+                      height="152"
+                      className="mb-4"
+                      allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                      loading="lazy"
+                    />
+                  )}
+
+                  {post.apple_music_url && (
+                    <div className="bg-gray-50 p-4 rounded mb-12">
+                      <p className="text-sm text-gray-600 mb-2">Listen on Apple Music:</p>
+                      <a href={post.apple_music_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline font-medium">
+                        Open in Apple Music
+                      </a>
+                    </div>
+                  )}
+
+                  {post.credits && (
+                    <div className="mb-12 pb-12 border-b border-gray-200">
+                      <h3 className="text-lg font-semibold mb-4">Credits</h3>
+                      <p className="text-gray-700 whitespace-pre-line">{post.credits}</p>
+                    </div>
+                  )}
+
+                  {post.process_description && (
+                    <div className="mb-12 pb-12 border-b border-gray-200">
+                      <h3 className="text-lg font-semibold mb-4">Making This Song</h3>
+                      <p className="text-gray-700 whitespace-pre-line leading-relaxed">{post.process_description}</p>
+                    </div>
+                  )}
+
+                  {demos.length > 0 && (
+                    <div className="mb-8">
+                      <h3 className="text-lg font-semibold mb-4">Earlier Demos ({demos.length})</h3>
+                      <div className="space-y-4">
+                        {demos.map((demo, idx) => (
+                          <div key={idx} className="p-4 border border-gray-200 rounded">
+                            <p className="font-medium text-gray-900">{demo.name}</p>
+                            {demo.date && <p className="text-sm text-gray-600 mb-2">{demo.date}</p>}
+                            <audio controls src={demo.url} className="w-full mt-2" />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  <p className="text-gray-500 text-sm mt-8">
+                    {new Date(post.published_at).toLocaleDateString()} · {post.views} {post.views === 1 ? 'view' : 'views'}
+                  </p>
+                </article>
+              );
+            })}
           </div>
         )}
       </main>
@@ -144,36 +202,16 @@ export default function Home() {
             <form onSubmit={showLogin ? handleLogin : handleSignup} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium mb-2">Email</label>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full border border-gray-300 rounded px-3 py-2"
-                  required
-                />
+                <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full border border-gray-300 rounded px-3 py-2" required />
               </div>
               <div>
                 <label className="block text-sm font-medium mb-2">Password</label>
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full border border-gray-300 rounded px-3 py-2"
-                  required
-                />
+                <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full border border-gray-300 rounded px-3 py-2" required />
               </div>
-              <button
-                type="submit"
-                disabled={authLoading}
-                className="w-full bg-black text-white py-2 rounded disabled:opacity-50"
-              >
+              <button type="submit" disabled={authLoading} className="w-full bg-black text-white py-2 rounded disabled:opacity-50">
                 {authLoading ? 'Loading...' : (showLogin ? 'Login' : 'Signup')}
               </button>
-              <button
-                type="button"
-                onClick={() => { setShowLogin(false); setShowSignup(false); }}
-                className="w-full text-gray-600 hover:text-black"
-              >
+              <button type="button" onClick={() => { setShowLogin(false); setShowSignup(false); }} className="w-full text-gray-600 hover:text-black">
                 Cancel
               </button>
             </form>
